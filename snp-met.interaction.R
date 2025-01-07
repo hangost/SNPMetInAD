@@ -22,7 +22,7 @@ change.nm <- function(temp.mat,te.mat,id.nm,temp.nm,te.nm,te1="[.]"){
 
 vcf.names <- c("NIA_JG_1898_samples_GRM_WGS_b37_JointAnalysis01_2017-12-08_",".recalibrated_variants.Broad_Rush.vcf.gz")
 
-exp.data <- gsub(" ","",as.matrix(read.table("./4.rsem_result/ROSMAP_exp",sep='\t',header=T)))
+exp.data <- gsub(" ","",as.matrix(read.table("./5.rsem_result/ROSMAP_exp",sep='\t',header=T)))
 medi.exp <- apply(exp.data[,-1],1,function(x)    median(as.double(x)))
 exp.data <- exp.data[which(medi.exp > 0.1),]
 
