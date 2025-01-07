@@ -19,23 +19,6 @@ change.nm <- function(temp.mat,te.mat,id.nm,temp.nm,te.nm,te1="[.]"){
     return (f.mat)
 }
 
-er.te <- function(te.mat,int.te=NULL){
-    if (length(grep("Error",te.mat)))    return ("NA")
-    if (!length(int.te))    return (te.mat)
-    te.p <- try(summary(te.mat)$coefficient[int.te,4],silent=T)
-    if (length(grep("Error",te.p)))    return (NA)
-    return (te.p)
-}
-
-rm.out <- function(te.mat){
-    ea.mat <- te.mat
-    fi.q <- summary(as.double(ea.mat))[2]
-    se.q <- summary(as.double(ea.mat))[5]
-    int.q <- se.q - fi.q
-    out.v <- c(fi.q - (3 * int.q),se.q + (3 * int.q))
-    re.nms <- c(which(as.double(ea.mat) > out.v[1] & as.double(ea.mat) < out.v[2]))
-    return (re.nms)
-}
 
 vcf.names <- c("NIA_JG_1898_samples_GRM_WGS_b37_JointAnalysis01_2017-12-08_",".recalibrated_variants.Broad_Rush.vcf.gz")
 
@@ -118,32 +101,16 @@ paral.re <- foreach(i=1:length(u.over.re),.combine=rbind ,.errorhandling = "pass
                 r.lm <- lm(exp ~ geno + Met + Msex + age_death)
 
                 snp.p.v <- anova(snp.reduced.lm,snp.full.lm,test="LRT")$"Pr(>Chi)"[2]
-                snp.lm <- summary(f.lm)"ea.snp"
+                snp.OR <- summary(r.lm)$coefficient["geno:Met","Estimate"]
+                snp.lm <- summary(r.lm)$coefficient["geno","Pr(>|t|)"]
+                met.lm <- summary(r.lm)$coefficient["Met","Pr(>|t|)"]
                 
-                pre.re <- rbind(pre.re,c(tx.id,methyl.id[j],rownames(te.geno)[z],snp.lm,met.lm,snp.p.v))
-                
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-me.sams <- colnames(te.methyl.exp)
-
-
-
-
-
-
-
-
+                pre.re <- rbind(pre.re,c(tx.id,methyl.id[j],rownames(te.geno)[z],snp.p.v,snp.OR,snp.lm,met.lm))
+                }
+            }
+        pre.re
+        }
+    }
+    
+save(paral.re,file="./results/interaction.re")
+                  
