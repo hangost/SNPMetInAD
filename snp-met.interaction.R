@@ -97,8 +97,8 @@ paral.re <- foreach(i=1:length(u.over.re),.combine=rbind ,.errorhandling = "pass
                 merged.data[,"geno"] <- as.integer(merged.data[,"geno"])
                 merged.data[,"Met"] <- as.double(merged.data[,"Met"])
                 merged.data[,"age_death"] <- as.integer(merged.data[,"age_death"])
-                f.lm <- lm(exp ~ geno + Met + geno*Met + Msex + age_death)
-                r.lm <- lm(exp ~ geno + Met + Msex + age_death)
+                f.lm <- lm(exp ~ geno + Met + geno*Met + msex + age_death)
+                r.lm <- lm(exp ~ geno + Met + msex + age_death)
 
                 snp.p.v <- anova(snp.reduced.lm,snp.full.lm,test="LRT")$"Pr(>Chi)"[2]
                 snp.OR <- summary(r.lm)$coefficient["geno:Met","Estimate"]
