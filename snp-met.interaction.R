@@ -69,7 +69,7 @@ promo.mat <- cbind(as.matrix(elementMetadata(promo.re))[,2],as.character(seqname
 over.re <- as.matrix(findOverlaps(promo.re,methyl.ran))
 u.over.re <- unique(over.re[,1])
 
-
+registerDoParallel(cores=12)
 paral.re <- foreach(i=1:length(u.over.re),.combine=rbind ,.errorhandling = "pass") %dopar% {
     ea.re <- rbind(over.re[over.re[,1] == u.over.re[i],])
     tx.id <- promo.mat[as.integer(u.over.re[i]),1]
@@ -88,7 +88,40 @@ paral.re <- foreach(i=1:length(u.over.re),.combine=rbind ,.errorhandling = "pass
         sum(na.omit(t.x[c("1","2")]))/(length(x[x != "./."]) * 2)
     })
     com.mu <- names(maf.f[which(maf.f > 0.05 & maf.f < 0.95)])
-    te.snp.nm <- grep("_[A,C,G,T]/[A,C,G,T]$",com.mu)
+    te.snp.nm <- com.mu[grep("_[A,C,G,T]/[A,C,G,T]$",com.mu)]
+    te.geno <- rbind(geno.data[te.snp.nm,])
+    rownames(te.geno) <- te.snp.nm
+    if (length(te.geno)){
+        pre.re <- NULL
+        for (j in 1:length(methyl.id)){
+            tx.met <- as.matrix(te.methyl.exp[which(te.methyl.exp[,1] == methyl.id[j]),])
+            colnames(tx.met) <- c("id","Met")
+            for (z in 1:length(te.geno[,1])){
+                ea.te.geno <- te.geno[z,]
+                ea.te.geno.num <- do.call(rbind,strsplit(ea.te.geno,"/"))
+                ea.te.geno.num <- as.integer(ea.te.geno.num[,1]) + as.integer(ea.te.geno.num[,2])
+                ea.te.geno.mat <- cbind(ids=names(ea.te.geno),geno=ea.te.geno.num)
+                tx.exp.mat <- t(rbind(ids=colnames(tx.exp),geno=tx.exp))
+                colnames(tx.exp.mat) <- c("ids","exp")
+
+                tx.exp.geno.cli <- as.matrix(merge(f.cli.mat,ea.te.geno.mat,by.x="wgs_id",by.x="ids"))
+                tx.exp.geno.cli <- as.matrix(merge(tx.exp.geno.cli,tx.exp.mat,by.x="wgs_id",by.y="ids"))
+                tx.exp.geno.cli <- unique(merge(tx.exp.geno.cli,tx.met,by.x="wgs_id",by.y="id"))
+                AD.data <- tx.exp.geno.cli[as.integer(tx.exp.geno.cli[,"ceradsc"]) < 4,]
+                AD.data[,"msex"] <- gsub("0","female",gsub("1","male",AD.data[,"msex"]))
+                
+                merged.data[,"exp"] <- as.double(merged.data[,"exp"])
+                merged.data[,"geno"] <- as.integer(merged.data[,"geno"])
+                merged.data[,"Met"] <- as.double(merged.data[,"Met"])
+                merged.data[,"age_death"] <- as.integer(merged.data[,"age_death"])
+                f.lm <- lm(exp ~ geno + Met + geno*Met + Msex + age_death)
+                r.lm <- lm(exp ~ geno + Met + Msex + age_death)
+
+                snp.p.v <- anova(snp.reduced.lm,snp.full.lm,test="LRT")$"Pr(>Chi)"[2]
+                snp.lm <- summary(f.lm)"ea.snp"
+                
+                pre.re <- rbind(pre.re,c(tx.id,methyl.id[j],rownames(te.geno)[z],snp.lm,met.lm,snp.p.v))
+                
 
 
 
@@ -97,7 +130,11 @@ paral.re <- foreach(i=1:length(u.over.re),.combine=rbind ,.errorhandling = "pass
 
 
 
-registerDoParallel(cores=12)
+
+
+
+
+
 
 
 
