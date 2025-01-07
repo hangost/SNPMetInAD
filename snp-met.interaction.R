@@ -97,13 +97,23 @@ paral.re <- foreach(i=1:length(u.over.re),.combine=rbind ,.errorhandling = "pass
                 merged.data[,"geno"] <- as.integer(merged.data[,"geno"])
                 merged.data[,"Met"] <- as.double(merged.data[,"Met"])
                 merged.data[,"age_death"] <- as.integer(merged.data[,"age_death"])
-                f.lm <- lm(exp ~ geno + Met + geno*Met + msex + age_death)
-                r.lm <- lm(exp ~ geno + Met + msex + age_death)
+                f.lm <- lm(exp ~ geno + Met + geno*Met + msex + age_death, data=merged.data)
+                r.lm <- lm(exp ~ geno + Met + msex + age_death, data=merged.data)
 
                 snp.p.v <- anova(snp.reduced.lm,snp.full.lm,test="LRT")$"Pr(>Chi)"[2]
                 snp.OR <- summary(r.lm)$coefficient["geno:Met","Estimate"]
                 snp.lm <- summary(r.lm)$coefficient["geno","Pr(>|t|)"]
                 met.lm <- summary(r.lm)$coefficient["Met","Pr(>|t|)"]
+
+                # Revision codes
+                #snp.f.lm <- lm(exp ~ geno + Met + geno*Met + msex + age_death + braaksc + ceradsc + apoe_genotype, data=merged.data)
+                #snp.r.lm <- lm(exp ~ geno + Met + msex + age_death + braaksc + ceradsc + apoe_genotype, data=merged.data)
+                #snp.p.v <- anova(snp.f.lm,snp.r.lm,test="LRT")$"Pr(>Chi)"[2]
+
+                #snp.f.lm.2 <- lm(exp ~ geno + Met + geno*Met, data=merged.data)
+                #snp.r.lm.2 <- lm(exp ~ geno + Met, data=merged.data)
+                #snp.p.v.2 <- anova(snp.f.lm.2,snp.r.lm.2,test="LRT")$"Pr(>Chi)"[2]
+                #pre.re <- rbind(pre.re,c(tx.id,methyl.id[j],rownames(te.geno)[z],snp.p.v,snp.p.v.2))
                 
                 pre.re <- rbind(pre.re,c(tx.id,methyl.id[j],rownames(te.geno)[z],snp.p.v,snp.OR,snp.lm,met.lm))
                 }
